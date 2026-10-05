@@ -38,11 +38,12 @@ Full tables, the scale list and the planned **Direction 2** mapping live in
 ## Features
 
 - [x] **Hover-to-play** — move the mouse over the image to play its colour
-- [ ] **Lightness → octave** — make brightness control pitch height _(next step)_
-- [ ] **Saturation → volume** — make vividness control loudness _(next step)_
-- [ ] **Scale dropdown** — choose between major, minor, pentatonic, blues, whole tone
-- [ ] **Drag-and-drop upload** — drop an image anywhere on the page
-- [ ] **Playhead** — a marker showing where the "playback" is in the image
+- [x] **Lightness → octave** — dark pixels sound low, bright pixels sound high
+- [x] **Saturation → volume** — greys are a rest, vivid colours are loud
+- [x] **Scale dropdown** — major, minor, pentatonic, blues, whole tone, chromatic
+- [x] **Drag-and-drop upload** — drop an image anywhere on the page
+- [x] **Master volume** — one slider for the whole output
+- [x] **Playhead + readout** — a marker and a live panel showing hue/sat/light/note
 - [ ] **Deploy** — publish to GitHub Pages
 - [ ] **Direction 2** — invert the mapping so lightness picks the note
 
@@ -50,7 +51,7 @@ Full tables, the scale list and the planned **Direction 2** mapping live in
 
 ## Running it locally
 
-No build step yet — ChromaTone is plain HTML, CSS and JavaScript for now.
+No build step — ChromaTone is plain HTML, CSS and JavaScript for now.
 
 1. **Clone the repo**
 
@@ -80,8 +81,7 @@ No build step yet — ChromaTone is plain HTML, CSS and JavaScript for now.
 | -------------- | ------------------------------------------- |
 | **JavaScript** | All the logic                               |
 | **Canvas API** | Reading pixels and drawing the image        |
-| **Tone.js**    | Web Audio wrapper — playing the notes       |
-| **Vite**       | Planned dev server and bundler (not yet added) |
+| **Web Audio API** | Playing the notes (no Tone.js dependency) |
 
 ---
 
