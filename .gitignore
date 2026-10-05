@@ -1,0 +1,8 @@
+# Dependencies (nothing installed yet - Vite is planned)
+node_modules/
+
+# Build output (used when Vite arrives)
+dist/
+
+# macOS junk files - harmless but noisy in git status
+.DS_Store
