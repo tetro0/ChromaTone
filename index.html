@@ -38,6 +38,14 @@
         </div>
 
         <h2>Controls</h2>
+        <label class="control" for="direction">
+          Direction
+          <select id="direction">
+            <option value="1">1 — Hue → note</option>
+            <option value="2">2 — Lightness → note</option>
+          </select>
+        </label>
+
         <label class="control" for="scale">
           Scale
           <select id="scale"></select>
@@ -48,7 +56,8 @@
           <input id="volume" type="range" min="0" max="1" step="0.01" value="0.5" />
         </label>
 
-        <p class="hint">Hue picks the note · Lightness picks the octave · Saturation picks the volume.</p>
+        <p class="hint">Direction 1 — Hue picks the note · Lightness picks the octave · Saturation picks the volume.</p>
+        <p class="hint">Direction 2 — Lightness picks the note · Saturation picks the octave · Hue picks the volume.</p>
         <p class="hint">Audio starts after your first click or mouse move (browser autoplay rules).</p>
       </aside>
     </main>

@@ -1,6 +1,9 @@
 /**
- * ChromaTone — Direction 1 mapping.
- * Hue -> note, Lightness -> octave, Saturation -> volume.
+ * ChromaTone — colour to sound.
+ *
+ * Two mappings are available and switchable at runtime:
+ *   Direction 1 — Hue -> note, Lightness -> octave, Saturation -> volume.
+ *   Direction 2 — Lightness -> note, Saturation -> octave, Hue -> volume.
  * See docs/MAPPING.md for the reference tables.
  */
 
@@ -21,7 +24,10 @@ const HUE_SLICES = 12;
 const OCTAVES = [2, 3, 4, 5, 6, 7];
 const MAX_HUE_STEP_MS = 40; // throttle so fast mouse moves don't buzz
 // A fully grey pixel is a rest, not a click of noise.
+// Direction 2 gets a louder rest threshold: its volume comes from hue, so a
+// near-grey pixel would otherwise whisper at full volume.
 const MIN_VOLUME = 0.02;
+const MIN_VOLUME_D2 = 0.12;
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
@@ -29,6 +35,7 @@ const dropzone = document.getElementById("dropzone");
 const playhead = document.getElementById("playhead");
 const fileInput = document.getElementById("file");
 const scaleSelect = document.getElementById("scale");
+const directionSelect = document.getElementById("direction");
 const masterVolume = document.getElementById("volume");
 const swatch = document.getElementById("swatch");
 const out = {
@@ -41,6 +48,7 @@ const out = {
 };
 
 let scale = SCALES.major;
+let direction = "1";
 let audioCtx = null;
 let masterGain = null;
 let lastStep = -1;
@@ -87,12 +95,66 @@ function saturationToVolume(saturation) {
   return Math.min(1, Math.max(0, saturation / 100));
 }
 
+/* Direction 2 helpers ------------------------------------------------
+ * Here the roles are swapped: lightness picks the pitch, saturation picks
+ * the octave, and hue plays the part of loudness. */
+
+/** Lightness 0-100 -> scale degree, quantised to a slice of the scale. */
+function lightnessToScaleDegree(lightness) {
+  const clamped = Math.min(100, Math.max(0, lightness));
+  const slice = Math.min(HUE_SLICES - 1, Math.floor((clamped / 100) * HUE_SLICES));
+  return scale.offsets[slice % scale.offsets.length];
+}
+
+/** Saturation 0-100 -> octave 2-7 (vivid = lower, muted = higher). */
+function saturationToOctave(saturation) {
+  const clamped = Math.min(100, Math.max(0, saturation));
+  const idx = OCTAVES.length - 1 - Math.floor((clamped / 100) * OCTAVES.length);
+  return { octave: OCTAVES[idx], idx };
+}
+
+/** Hue 0-360 -> volume 0-1; red/orange are loudest, cyan/blue softest. */
+function hueToVolume(hue) {
+  const wrapped = ((hue % 360) + 360) % 360;
+  const distance = Math.min(wrapped, 360 - wrapped);
+  return Math.max(0, 1 - distance / 180);
+}
+
+/** Quantise a value to reduce jitter in the MIDI readout. */
+function roundTo(value, step) {
+  return Math.round(value / step) * step;
+}
+
+/** Active mapping: chooses Direction 1 or Direction 2. */
 function colorToMidi(hsl) {
+  if (direction === "2") return colorToMidiD2(hsl);
+  return colorToMidiD1(hsl);
+}
+
+function colorToMidiD1(hsl) {
   const { octave } = lightnessToOctave(hsl.l);
   const degree = hueToScaleDegree(hsl.h);
   // C2 is midi 36, so the octave band just adds one octave per step up.
   const midi = ROOT_MIDI + degree + (octave - OCTAVES[0]) * 12;
   return { midi, octave, degree };
+}
+
+function colorToMidiD2(hsl) {
+  const { octave } = saturationToOctave(hsl.s);
+  const degree = lightnessToScaleDegree(hsl.l);
+  const midi = ROOT_MIDI + degree + (octave - OCTAVES[0]) * 12;
+  return { midi, octave, degree };
+}
+
+/** Active mapping: the pixel's loudness under the chosen direction. */
+function colorToVolume(hsl) {
+  if (direction === "2") return hueToVolume(hsl.h);
+  return saturationToVolume(hsl.s);
+}
+
+/** Volume floor for the active direction. */
+function minVolume() {
+  return direction === "2" ? MIN_VOLUME_D2 : MIN_VOLUME;
 }
 
 function midiToFrequency(midi) {
@@ -171,13 +233,14 @@ function onPointerMove(event) {
 
   const hsl = rgbToHsl(data[0], data[1], data[2]);
   const { midi } = colorToMidi(hsl);
-  const volume = saturationToVolume(hsl.s);
+  const volume = colorToVolume(hsl);
   updateReadout(hsl, midi, volume);
 
   // Repeat a note only when the pitch actually changes, so holding still is
   // silent instead of droning.
   const now = performance.now();
   if (midi === lastStep || now - lastPlayedAt < MAX_HUE_STEP_MS) return;
+  if (volume < minVolume()) return; // rest: still update the readout above
   lastStep = midi;
   lastPlayedAt = now;
   playNote(midi, volume);
@@ -253,6 +316,14 @@ function init() {
     if (e.touches[0]) onPointerMove(e.touches[0]);
   });
 
+  directionSelect.value = "1";
+  directionSelect.addEventListener("change", () => {
+    direction = directionSelect.value === "2" ? "2" : "1";
+    // A different note may now sit under the cursor; forget the last pitch so
+    // the next move through this pixel is allowed to sound.
+    lastStep = -1;
+  });
+
   fileInput.addEventListener("change", () => loadImageFromFile(fileInput.files[0]));
 
   for (const type of ["dragenter", "dragover"]) {
@@ -278,7 +349,17 @@ function init() {
   updateReadout(null, null, null);
 
   // Handy for debugging from the console / automated checks.
-  window.chroma = { rgbToHsl, colorToMidi, midiToName, hueToScaleDegree, saturationToVolume };
+  window.chroma = {
+    rgbToHsl,
+    colorToMidi,
+    midiToName,
+    hueToScaleDegree,
+    saturationToVolume,
+    lightnessToScaleDegree,
+    saturationToOctave,
+    hueToVolume,
+    getDirection: () => direction,
+  };
 }
 
 init();
