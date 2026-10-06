@@ -1,0 +1,22 @@
+{
+  "name": "chromatone",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Paint colour on a canvas; a sweeping playhead turns it into music.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0",
+    "vitest": "^3.2.0"
+  },
+  "dependencies": {
+    "pitchy": "^4.1.0",
+    "tone": "^15.1.22"
+  }
+}
