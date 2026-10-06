@@ -203,7 +203,9 @@ function playNote(midi, volume) {
 /* --------------------------------------------------------------- readout */
 
 function updateReadout(hsl, midi, volume) {
-  swatch.style.background = `hsl(${hsl.h.toFixed(0)}, ${hsl.s.toFixed(0)}%, ${hsl.l.toFixed(0)}%)`;
+  swatch.style.background = hsl
+    ? `hsl(${hsl.h.toFixed(0)}, ${hsl.s.toFixed(0)}%, ${hsl.l.toFixed(0)}%)`
+    : "#000";
   out.note.textContent = midi === null ? "—" : midiToName(midi);
   out.octave.textContent = midi === null ? "—" : midiToName(midi).replace(/[^0-9]/g, "");
   out.hue.textContent = hsl ? `${hsl.h.toFixed(0)}°` : "—";

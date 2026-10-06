@@ -7,6 +7,13 @@ mouse across it, and each pixel you touch is turned into a note — the colour's
 hue picks the note, how light it is picks the octave, and how saturated it is
 picks how loud it sounds.
 
+There are **two mappings**, switchable from the panel:
+
+| Direction | Note      | Octave      | Volume      |
+| --------- | --------- | ----------- | ----------- |
+| **1**     | Hue       | Lightness   | Saturation  |
+| **2**     | Lightness | Saturation  | Hue         |
+
 > 🎓 A hobby project, built as a way to learn the Canvas API, Web Audio and Git.
 
 ## 🎬 Demo
@@ -30,7 +37,7 @@ deployed yet).
 | **Lightness**   | Octave  | The lightness of the pixel picks the octave — dark pixels play low, light pixels play high. |
 | **Saturation**  | Volume  | A grey (unsaturated) pixel is quiet; a vivid pixel is loud. Volume = saturation ÷ 100. |
 
-Full tables, the scale list and the planned **Direction 2** mapping live in
+Full tables, the scale list and both mappings live in
 [docs/MAPPING.md](docs/MAPPING.md).
 
 ---
@@ -41,11 +48,11 @@ Full tables, the scale list and the planned **Direction 2** mapping live in
 - [x] **Lightness → octave** — dark pixels sound low, bright pixels sound high
 - [x] **Saturation → volume** — greys are a rest, vivid colours are loud
 - [x] **Scale dropdown** — major, minor, pentatonic, blues, whole tone, chromatic
+- [x] **Two switchable directions** — Direction 1 (hue → note) and Direction 2 (lightness → note)
 - [x] **Drag-and-drop upload** — drop an image anywhere on the page
 - [x] **Master volume** — one slider for the whole output
 - [x] **Playhead + readout** — a marker and a live panel showing hue/sat/light/note
 - [ ] **Deploy** — publish to GitHub Pages
-- [ ] **Direction 2** — invert the mapping so lightness picks the note
 
 ---
 
